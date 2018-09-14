@@ -2,63 +2,40 @@
 
 import React from 'react'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import ReactTable from 'react-table';
-import { makeData, Logo, Tips,getData } from "../Utils";
 
+export default (ReactTable) => {
 
-const defaultSelectInputComponent = props => {
-    
-    this.onMouseOver = (event)=>{
-        event.target.classList.add("fa");
-        event.target.classList.add("fa-arrows");
+    const DragTrComponent = props => {
+        const { children = null, rowInfo } = props;
+
+        if (rowInfo) {
+            const { original, index } = rowInfo;
+            const { _id } = original;
+
+            return (
+                <Draggable key={_id} index={index} draggableId={_id}>
+                    {(draggableProvided, draggableSnapshot) => (
+                        <div className='dragComponent'
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
+                            {...draggableProvided.dragHandleProps}>
+                            <ReactTable.defaultProps.TrComponent>
+                                {children}
+                            </ReactTable.defaultProps.TrComponent>
+                        </div>
+                    )}
+                </Draggable>
+            );
+        } else
+            return (
+                <ReactTable.defaultProps.TrComponent>
+                    {children}
+                </ReactTable.defaultProps.TrComponent>
+            );
     }
 
-    this.onMouseOut = (event) => {
-        event.target.classList.remove("fa");
-        event.target.classList.remove("fa-arrows");
-    }
-
-    return (
-        <div className="drag-row" onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}></div>
-    )
-}
-
-
-
-const DragTrComponent = props =>{
-    const { children = null, rowInfo } = props;
-    
-    if (rowInfo) {
-        const { original, index } = rowInfo;
-        const { _id } = original;
-       
-        return (
-            <Draggable key={_id} index={index} draggableId={_id}>
-                {(draggableProvided, draggableSnapshot) => (
-                    <div className='dragComponent'
-                        ref={draggableProvided.innerRef}
-                        {...draggableProvided.draggableProps}
-                        {...draggableProvided.dragHandleProps}
-                    >
-                        <ReactTable.defaultProps.TrComponent>
-                            {children}
-                        </ReactTable.defaultProps.TrComponent>
-                    </div>
-                )}
-            </Draggable>
-        );
-    } else
-        return (
-            <ReactTable.defaultProps.TrComponent>
-                {children}
-            </ReactTable.defaultProps.TrComponent>
-        );
-}
-
-const DropTbodyComponent = props=> {
-    
+    const DropTbodyComponent = props => {
         const { children = null } = props;
-
         return (
             <Droppable droppableId="droppable">
                 {(droppableProvided, droppableSnapshot) => (
@@ -70,34 +47,28 @@ const DropTbodyComponent = props=> {
                 )}
             </Droppable>
         );
-}
+    }
 
-const TdComponent = props => {
-
-    const { children = null } = props;
-   
-
-    return (
+    const TdComponent = props => {
+        const { children = null } = props;
+        return (
             <ReactTable.defaultProps.TdComponent {...props} tabIndex={0}>
-                        {children}
-                </ReactTable.defaultProps.TdComponent>
-    );
-}
-
-export default Component => {
-    const wrapper = class RTSelectTable extends React.Component {
+                {children}
+            </ReactTable.defaultProps.TdComponent>
+        );
+    }
+    const wrapper = class RTDragTable extends React.Component {
         constructor(props) {
             super(props)
-           
             this.handleDragEnd = this.handleDragEnd.bind(this);
             this.state = {
-                data:props.data
+                data: props.data
             }
         }
 
-        componentWillReceiveProps(nextProps){
+        componentWillReceiveProps(nextProps) {
             this.setState({
-                data:nextProps.data
+                data: nextProps.data
             })
         }
 
@@ -105,7 +76,7 @@ export default Component => {
             return React.createElement(this.props.SelectInputComponent, {})
         }
 
-         reorder = (list, startIndex, endIndex) => {
+        reorder = (list, startIndex, endIndex) => {
             const result = Array.from(list);
             const [removed] = result.splice(startIndex, 1);
             result.splice(endIndex, 0, removed);
@@ -122,56 +93,49 @@ export default Component => {
 
         handleDragEnd = result => {
             let oldData = [...this.state.data]
-            if(!result || !result.source)
+            if (!result || !result.source)
                 return;
             let newData = this.reorder(oldData, result.source.index,
                 result.destination.index);
-            
-            if (this.props.onDragChange){
+
+            if (this.props.onDragChange) {
                 this.props.onDragChange(newData);
-            }else{
+            } else {
                 this.setState({
-                    data:newData
+                    data: newData
                 })
             }
         };
 
         getTrProps = (state, rowInfo) => {
-          //  console.log(rowInfo);
             return { rowInfo };
         };
 
-        
+
         render() {
             const {
                 columns: originalCols,
-                selectWidth,
-                SelectAllInputComponent,
-                SelectInputComponent,
                 data,
                 ...rest
             } = this.props
-          
+
             const columns = [...originalCols]
             const extra = {
                 columns
             }
-           
+
             return (
                 <DragDropContext onDragEnd={this.handleDragEnd}>
-                    <Component {...rest} {...extra} ref={r => (this.wrappedInstance = r)} TrComponent={DragTrComponent}
-                    TbodyComponent={DropTbodyComponent} 
-                        getTrProps={this.getTrProps} onSortedChange={this.onSortedChange} data={this.state.data} TdComponent={TdComponent}/>
+                    <ReactTable {...rest} {...extra} ref={r => (this.wrappedInstance = r)} TrComponent={DragTrComponent}
+                        TbodyComponent={DropTbodyComponent} getTrProps={this.getTrProps} data={this.state.data} TdComponent={TdComponent} />
                 </DragDropContext>
             );
         }
     }
 
-    wrapper.displayName = 'RTSelectTable'
+    wrapper.displayName = 'RTDragTable'
     wrapper.defaultProps = {
         keyField: '_id',
-        SelectInputComponent: defaultSelectInputComponent,
-        SelectAllInputComponent: defaultSelectInputComponent,
     }
 
     return wrapper
