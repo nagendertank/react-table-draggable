@@ -3,11 +3,12 @@ import { makeData, Logo, Tips,getData } from "./Utils";
 // Import React Table
 import ReactTable from "react-table";
 import "react-table/react-table.css";
-import Dragable from './HOC/Drag';
+import DynamicTableColumn from './HOC/Drag';
 import './App.css'
+import 'semantic-ui-css/semantic.min.css';
 
+const DragTable = DynamicTableColumn(ReactTable)
 
-const DraggableTable = Dragable(ReactTable);
 export default class App extends React.Component {
   constructor() {
     super();
@@ -16,6 +17,8 @@ export default class App extends React.Component {
       trigger: 0
     };
   }
+
+
   
 
   render() {
@@ -23,12 +26,11 @@ export default class App extends React.Component {
     let columns = [
       {
         Header: "First Name",
-        accessor: "firstName",
-       
+        accessor: "firstName"
       },
       {
         Header: "Last Name",
-        accessor: "lastName",
+        accessor: "lastName"
       },
       {
         Header: "Full Name",
@@ -39,20 +41,29 @@ export default class App extends React.Component {
               __html: d.firstName + " " + d.lastName
             }}
           />
+      },
+      {
+        Header: "Age",
+        accessor: "age",
+        show:false
+      },
+      {
+        Header: "Progress",
+        accessor: "progress",
+        show:false
       }
     ];
-
 
    
     return (
       <div>
-        <DraggableTable
+        <DragTable
             ref={r => (this.draggableTable = r)}
             columns={columns}
             data = {data}
             defaultPageSize={10}
             className="-striped -highlight"
-            onDragChange={data=>this.setState({data})}
+            isDynamicColumn = {true}
           />
       
         <br />
